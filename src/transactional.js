@@ -1,10 +1,11 @@
 
-import NodeEventEmitter from 'node-event-emitter';
+//import NodeEventEmitter from 'node-event-emitter';
+import Events from 'events';
 
 import makeDebug from 'debug';
 const debug = makeDebug('feathers-offline-realtime');
 
-export default class Transactional extends NodeEventEmitter {
+export default class Transactional extends Events {
   constructor (service, options = {}) {
     debug('constructor entered');
     super();
@@ -68,6 +69,7 @@ export default class Transactional extends NodeEventEmitter {
 
   mutateStore (eventName, remoteRecord) {
     debug(`mutateStore started: ${eventName}`);
+    const that = this;
 
     const idName = ('id' in remoteRecord) ? 'id' : '_id';
     const store = this.store;
@@ -98,7 +100,9 @@ export default class Transactional extends NodeEventEmitter {
     function emitMutate (action) {
       debug(`emitted ${index} ${eventName} ${action}`);
       store.last = { eventName, action, record: remoteRecord };
-      // this.emit('events', records, store.last);
+  
+      console.log('emitting');
+      that.emit('events', records, store.last);
     }
   }
 }
