@@ -8,21 +8,25 @@
 
 > Offline-first realtime replication. Realtime, read-only publication from a service.
 
+You can keep on the client a near realtime replica of (some of) the records
+in a service configured on the server.
+This may make your client more performant, so it appears "snappier."
+
 You can replicate just a subset of the records in the service by providing a "publication" function
 which, given a record, determines if the record belongs in the publication.
-A record may be updated using the service so that it no longer belongs to the publication,
+You or some other party may update the record so that it no longer belongs to the publication,
 or so that it now belongs.
 The replicator handles these situations.
 
-Many mobile apps, for example, have data unique to every user.
+Many apps, for example, have unique data for every user.
 With publications, you can keep the records for all users in one table,
 using the publication feature to replicate to the client
-only those records belong to that client's user.
+only those records belonging to the client's user.
 
 A [snapshot replication](https://github.com/feathersjs/feathers-offline-snapshot)
-is used to obtain the initial realtime records.
-By default, the publication function would be run against every record in the service.
-You can however provide a
+is used to initially obtain the records.
+By default, the publication function will be run against every record in the service.
+You may however provide a
 [Feathers query object](https://docs.feathersjs.com/api/databases/querying.html)
 to reduce the number of records read initially.
 The publication function will still be run against these records.
@@ -30,15 +34,15 @@ The publication function will still be run against these records.
 > **ProTip:** A publication function is required whenever you provide the query object,
 and the publication must be at least as restrictive as the query.
 
-The realtime replicator can notify you of realtime data changes by emitting an event and/or
+The realtime replicator can notify you of data mutations by emitting an event and/or
 calling a subscription function for every notification.
 You can in addition periodically poll the replicator to obtain the current realtime records.
 
-> **ProTip:** Every Feathers event for the service is sent to the client.
+> **ProTip:** Every Feathers event occurring for the service on the server is sent to the client.
 
 You can control the order of the realtime records by providing a sorting function
 compatible with `array.sort(options.sort)`.
-Two sorting functions are provided for your convenience:
+Two sorting functions are provided for your convenience with this repo:
 - `Realtime.sort(fieldName)` sorts on the `fieldName` in ascending order.
 - `Realtime.multiSort({ fieldName1: 1, fieldName2: -1 })` sorts on multiple fields
 in either ascending or descending order.
@@ -59,9 +63,19 @@ npm install feathers-offline-realtime --save
 ```javascript
 import Realtime from 'feathers-offline-realtime';
 const messages = app.service('/messages');
+
 const messagesRealtime = new Realtime(messages, options);
+
+messagesRealtime.connect()
+  .then(() => {
+    messagesRealtime.changeSort(Realtime.multiSort(sortFunc));
+    console.log(messagesRealtime.connected);
+  });
+
+
 ```
 
+**Options** Realtime() - 
 - `service` (*required*) - The service to read.
 - `options` (*optional*) - The configuration object.
     - `publication` (*optional* but *required* if `query` is specified.
@@ -80,6 +94,11 @@ const messagesRealtime = new Realtime(messages, options);
     - `subscriber` (*optional* Function with signature
     `(records, { action, eventName, record }) => ...`) - Function to call on mutation events.
     See example below.
+    
+**Options** changeSort()
+- `sortFunc` (*optional*) - Same as `options.sort`.
+
+**
 
 > **ProTip:** Replication events are always emitted. See example below.
 
@@ -107,6 +126,9 @@ messagesRealtime.on('events', (records, { action, eventName, record }) => {
   console.log('realtime records:', records);
   console.log('event listeners active:', messagesRealtime.connected);
 });
+
+messagesRealtime.connect()
+  .then(() => ...);
 ```
 
 ## Example using a subscriber
@@ -124,6 +146,9 @@ const messagesRealtime = new Realtime(messages, {
   sort: Realtime.multiSort({ channel: 1, topic: 1 }),
   subscriber
 });
+
+messagesRealtime.connect()
+  .then(() => ...);
 
 function subscriber(records, { action, eventName, record }) => {
   console.log('last mutation:', action, eventName, record);
