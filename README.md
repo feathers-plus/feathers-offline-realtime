@@ -16,35 +16,86 @@ npm install feathers-offline-realtime --save
 
 ## Documentation
 
-Please refer to the [feathers-offline-realtime documentation](http://docs.feathersjs.com/) for more details.
+`snapshort(service, query)`
 
-## Complete Example
+- `service` (*required*) - The service to read.
+- `query` (*optional*, default: `{}`) - The
+[Feathers query object](https://docs.feathersjs.com/api/databases/querying.html)
+selecting the records to read.
+Some of the props it may include are:
+    - `$limit` (*optional*, default: 200) - Records to read at a time.
+    The service's configuration may limit the actual number read.
+    - `$skip` (*optional*, default: 0) will initially skip this number of records.
+    - `$sort` (*optional*, default: `{}`) will sort the records.
+    You can sort on multiple props, for example `{ field1: 1, field2: -1 }`.
 
-Here's an example of a Feathers server that uses `feathers-offline-realtime`. 
+
+
+## Example using event emitters
 
 ```js
-const feathers = require('feathers');
-const rest = require('feathers-rest');
-const hooks = require('feathers-hooks');
-const bodyParser = require('body-parser');
-const errorHandler = require('feathers-errors/handler');
-const plugin = require('feathers-offline-realtime');
+const Realtime = require('feathers-offline-realtime');
 
-// Initialize the application
-const app = feathers()
-  .configure(rest())
-  .configure(hooks())
-  // Needed for parsing bodies (login)
-  .use(bodyParser.json())
-  .use(bodyParser.urlencoded({ extended: true }))
-  // Initialize your feathers plugin
-  .use('/plugin', plugin())
-  .use(errorHandler());
+const app = ... // Configure Feathers, including the `/messages` service.
+const username = ... // The username authenticated on this client
+const messages = app.service('/messages');
 
-app.listen(3030);
+const messagesReplicator = new Realtime(messages, {
+  query: { username },
+  publication: record => record.username === username && record.inappropriate !== true,
+  sort: Realtime.multiSort({ channel: 1, topic: 1 }),
+});
 
-console.log('Feathers app started on 127.0.0.1:3030');
+messagesReplicator.on('events', (records, { action, eventName, record }) => {
+  console.log('last mutation:', action, eventName, record);
+  console.log('current records:', records);
+  console.log('event listeners active:', messagesReplicator.connected);
+});
 ```
+
+## Example using a subscriber
+
+```js
+const Realtime = require('feathers-offline-realtime');
+
+const app = ... // Configure Feathers, including the `/messages` service.
+const username = ... // The username authenticated on this client
+const messages = app.service('/messages');
+
+const messagesReplicator = new Realtime(messages, {
+  query: { username },
+  publication: record => record.username === username && record.inappropriate !== true,
+  sort: Realtime.multiSort({ channel: 1, topic: 1 }),
+  subscriber
+});
+
+function subscriber(records, { action, eventName, record }) => {
+  console.log('last mutation:', action, eventName, record);
+  console.log('current records:', records);
+  console.log('event listeners active:', messagesReplicator.connected);
+}
+```
+
+## Event information
+
+Events and subscriber calls provide the same information:
+- `records` - The current, up-to-date records.
+- `action` - The latest replication action.
+- `eventName` - The latest Feathers service event, e.g. created, updated, patched, removed.
+- `record` - The record associated with `eventName`.
+
+The possible `action` values are:
+
+| action           | eventName | record | records | description
+|------------------|-----------|--------|---------|--------------------------
+| snapshot         |     -     |    -   |   yes   | snapshot performed
+| add-listeners    |     -     |    -   |   yes   | listening to service events
+| mutated          | see below |   yes  |   yes   | record created or mutated
+| left-pub         | see below |   yes  |   yes   | mutated record no longer within publication
+| remove           | see below |   yes  |   yes   | record within publication removed
+| change-sort      |     -     |    -   |   yes   | records resorted by new sort criteria
+| remove-listeners |     _     |    -   |   yes   | stopped listening to service events
+|
 
 ## License
 
