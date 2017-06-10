@@ -7,16 +7,20 @@ const debug = makeDebug('feathers-offline-realtime');
 
 export default class Realtime {
   constructor (service, options = {}) {
-    debug('New replicator');
+    debug('constructor entered');
 
     this._service = service;
     this._query = options.query || {};
     this._publication = options.publication;
-    this._sort = options.sort;
     this.replicator = new Transactional(service, options);
 
+    this.changeSort = (...args) => this.replicator.changeSort(...args);
     this.on = (...args) => this.replicator.on(...args);
     this.store = this.replicator.store;
+  }
+
+  get connected () {
+    return this.replicator.listening;
   }
 
   connect () {
@@ -25,7 +29,7 @@ export default class Realtime {
     return snapshot(this._service, this._query)
       .then(records => {
         records = this._publication ? records.filter(this._publication) : records;
-        records = this._sort ? records.sort(this._sort) : records;
+        records = this.replicator.sorter ? records.sort(this.replicator.sorter) : records;
 
         this.replicator.snapshot(records);
         this.replicator.addListeners();
@@ -34,10 +38,6 @@ export default class Realtime {
 
   disconnect () {
     this.replicator.removeListeners();
-  }
-
-  get connected () {
-    return this.replicator.listening;
   }
 
   // array.sort(Realtime.sort('fieldName'));

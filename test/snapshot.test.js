@@ -184,5 +184,23 @@ describe('snapshot', () => {
           assert.deepEqual(records, data.slice(0, 10));
         });
     });
+
+    it('change sort works', () => {
+      const query = { order: { $lt: 15 } };
+      const publication = record => record.order < 10;
+      const realtime = new Realtime(fromService, { query, publication, sort: Realtime.sort('order') });
+
+      return realtime.connect()
+        .then(() => {
+          realtime.changeSort(Realtime.multiSort({ id: -1 }));
+
+          const records = realtime.store.records;
+          assert.lengthOf(records, 10);
+
+          assert.deepEqual(records, data.slice(0, 10).sort(
+            (a, b) => a.id > b.id ? -1 : (a.id < b.id ? 1 : 0)
+          ));
+        });
+    });
   });
 });

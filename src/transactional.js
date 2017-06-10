@@ -12,11 +12,11 @@ export default class Transactional extends Events {
 
     this._service = service;
     this._publication = options.publication;
-    this._sort = options.sort;
     this._subscriber = options.subscriber || (() => {});
+    this.sorter = options.sort;
     this.listening = false;
 
-    this._listener = eventName => remoteRecord => this.mutateStore(eventName, remoteRecord);
+    this._listener = eventName => remoteRecord => this._mutateStore(eventName, remoteRecord);
 
     this._eventListeners = {
       created: this._listener('created'),
@@ -74,8 +74,8 @@ export default class Transactional extends Events {
     }
   }
 
-  mutateStore (eventName, remoteRecord) {
-    debug(`mutateStore started: ${eventName}`);
+  _mutateStore (eventName, remoteRecord) {
+    debug(`_mutateStore started: ${eventName}`);
     const that = this;
 
     const idName = ('id' in remoteRecord) ? 'id' : '_id';
@@ -88,8 +88,8 @@ export default class Transactional extends Events {
       records.splice(index, 1);
     }
 
-    if (eventName === 'removed' && index >= 0) {
-      return broadcast('remove');
+    if (eventName === 'removed') {
+      return index >= 0 ? broadcast('remove') : undefined;
     }
 
     if (this._publication && !this._publication(remoteRecord)) {
@@ -98,8 +98,8 @@ export default class Transactional extends Events {
 
     records[records.length] = remoteRecord;
 
-    if (this._sort) {
-      records.sort(this._sort);
+    if (this.sorter) {
+      records.sort(this.sorter);
     }
 
     return broadcast('mutated');
@@ -111,6 +111,17 @@ export default class Transactional extends Events {
       that.emit('events', records, store.last);
       that._subscriber(records, store.last);
     }
+  }
+
+  changeSort (sort) {
+    this.sorter = sort;
+
+    if (this.sorter) {
+      this.store.records.sort(this.sorter);
+    }
+
+    this.emit('events', this.store.records, { action: 'change-sort' });
+    this._subscriber(this.store.records, { action: 'change-sort' });
   }
 }
 
