@@ -11,11 +11,12 @@ export default class Transactional extends Events {
     super();
 
     this._service = service;
-    this._publication = options.publication || (record => true);
+    this._publication = options.publication;
     this._sort = options.sort;
+    this._subscriber = options.subscriber || (() => {});
     this.listening = false;
-
-    this._listener = (eventName) => (remoteRecord) => this.mutateStore(eventName, remoteRecord);
+  
+    this._listener = eventName => remoteRecord => this.mutateStore(eventName, remoteRecord);
 
     this._eventListeners = {
       created: this._listener('created'),
@@ -30,13 +31,14 @@ export default class Transactional extends Events {
     };
   }
 
-  setStore (records) {
-    debug('setStore entered');
+  snapshot (records) {
+    debug('snapshot entered');
 
-    this.store.last = { eventName: '', action: 'setStore', record: {} };
+    this.store.last = { action: 'snapshot' };
     this.store.records = records;
 
-    this.emit('setStore', this.store.records, this.store.last);
+    this.emit('events', this.store.records, this.store.last);
+    this._subscriber(this.store.records, this.store.last);
   }
 
   addListeners () {
@@ -50,21 +52,26 @@ export default class Transactional extends Events {
     service.on('removed', eventListeners.removed);
 
     this.listening = true;
-    this.emit('addedListeners', this.store.records, this.store.last);
+    this.emit('events', this.store.records, { action: 'add-listeners' });
+    this._subscriber(this.store.records, { action: 'add-listeners' });
   }
 
   removeListeners () {
     debug('removeListeners entered');
-    const service = this._service;
-    const eventListeners = this._eventListeners;
-
-    service.removeListener('created', eventListeners.created);
-    service.removeListener('updated', eventListeners.updated);
-    service.removeListener('patched', eventListeners.patched);
-    service.removeListener('removed', eventListeners.removed);
-
-    this.listening = false;
-    this.emit('removedListeners', this.store.records, this.store.last);
+    
+    if (this.listening) {
+      const service = this._service;
+      const eventListeners = this._eventListeners;
+  
+      service.removeListener('created', eventListeners.created);
+      service.removeListener('updated', eventListeners.updated);
+      service.removeListener('patched', eventListeners.patched);
+      service.removeListener('removed', eventListeners.removed);
+  
+      this.listening = false;
+      this.emit('events', this.store.records, { action: 'remove-listeners' });
+      this._subscriber(this.store.records, { action: 'remove-listeners' });
+    }
   }
 
   mutateStore (eventName, remoteRecord) {
@@ -82,11 +89,11 @@ export default class Transactional extends Events {
     }
 
     if (eventName === 'removed' && index >= 0) {
-      return emitMutate('remove');
+      return broadcast('remove');
     }
 
-    if (!this._publication(remoteRecord)) {
-      return index >= 0 ? emitMutate('left-pub') : undefined;
+    if (this._publication && !this._publication(remoteRecord)) {
+      return index >= 0 ? broadcast('left-pub') : undefined;
     }
 
     records[records.length] = remoteRecord;
@@ -95,14 +102,14 @@ export default class Transactional extends Events {
       records.sort(this._sort);
     }
 
-    return emitMutate('mutated');
+    return broadcast('mutated');
 
-    function emitMutate (action) {
+    function broadcast (action) {
       debug(`emitted ${index} ${eventName} ${action}`);
       store.last = { eventName, action, record: remoteRecord };
   
-      console.log('emitting');
       that.emit('events', records, store.last);
+      that._subscriber(records, store.last);
     }
   }
 }

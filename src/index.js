@@ -1,71 +1,43 @@
 
-import makeSnapshot from 'feathers-offline-snapshot';
+import snapshot from 'feathers-offline-snapshot';
 import Transactional from './transactional';
 
 import makeDebug from 'debug';
 const debug = makeDebug('feathers-offline-realtime');
 
-// const realtimeMessages = new Realtime(service, options).subscribe(records => {}).connect();
 export default class Realtime {
   constructor (service, options = {}) {
     debug('New replicator');
 
     this._service = service;
     this._query = options.query || {};
-    this._publication = options.publication || (() => true);
+    this._publication = options.publication;
     this._sort = options.sort;
-    this._subscriber = options.subscriber;
     this.replicator = new Transactional(service, options);
+  
+    this.on = (...args) => this.replicator.on(...args);
     this.store = this.replicator.store;
-    this.connected = false;
   }
-
+  
   connect () {
-    if (this.replicator.listening) {
-      this.replicator.removeListeners();
-    }
-
-    return this.snapshot()
+    this.replicator.removeListeners();
+  
+    return snapshot(this._service, this._query)
       .then(records => {
-        if (this._publication) {
-          records = records.filter(this._publication);
-        }
-
-        this.replicator.setStore(records);
+        records = this._publication ? records.filter(this._publication) : records;
+        records = this._sort ? records.sort(this._sort) : records;
+        
+        this.replicator.snapshot(records);
         this.replicator.addListeners();
-        this.connected = true;
-
-        if (this._subscriber) {
-          this._subscriber('connected', null);
-        }
-      });
+      })
   }
-
+  
   disconnect () {
-    this.connected = false;
-
-    if (this.replicator.listening) {
-      this.replicator.removeListeners();
-    }
-
-    if (this._subscriber) {
-      this._subscriber('disconnected', null);
-    }
+    this.replicator.removeListeners();
   }
-
-  snapshot () {
-    const that = this;
-
-    return makeSnapshot(that._service, that._query)
-      .then(records => {
-        records.filter(that._publication);
-        return that._sort ? records.sort(that._sort) : records;
-      });
-  }
-
-  subscribe (subscriber) {
-    this.replicator.subscriber(subscriber);
-    this._subscriber = subscriber;
+  
+  get connected() {
+    return this.replicator.listening;
   }
 
   // array.sort(Realtime.sort('fieldName'));

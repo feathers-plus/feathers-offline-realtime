@@ -35,7 +35,7 @@ function fromServicePaginatedConfig () {
   }));
 }
 
-describe('realtime', () => {
+describe('snapshot', () => {
   describe('sorts', () => {
     let dataOrder;
     let dataId;
