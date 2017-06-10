@@ -18,7 +18,7 @@ You or some other party may update the record so that it no longer belongs to th
 or so that it now belongs.
 The replicator handles these situations.
 
-Many apps, for example, have unique data for every user.
+Many apps have unique data for every user.
 With publications, you can keep the records for all users in one table,
 using the publication feature to replicate to the client
 only those records belonging to the client's user.
@@ -38,7 +38,7 @@ The realtime replicator can notify you of data mutations by emitting an event an
 calling a subscription function for every notification.
 You can in addition periodically poll the replicator to obtain the current realtime records.
 
-> **ProTip:** Every Feathers event occurring for the service on the server is sent to the client.
+> **ProTip:** Every Feathers service event on the server is sent to the client.
 
 You can control the order of the realtime records by providing a sorting function
 compatible with `array.sort(options.sort)`.
@@ -47,8 +47,8 @@ Two sorting functions are provided for your convenience with this repo:
 - `Realtime.multiSort({ fieldName1: 1, fieldName2: -1 })` sorts on multiple fields
 in either ascending or descending order.
 
-You can dynamically change the sort order depending on your needs,
-which can be very useful for the UI.
+You can dynamically change the sort order as your needs change.
+This can be very useful for your UI.
 
 
 ## Installation
