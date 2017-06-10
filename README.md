@@ -75,7 +75,7 @@ messagesRealtime.connect()
 
 ```
 
-**Options** Realtime() - 
+**Options** Realtime() - Create a realtime replicator.
 - `service` (*required*) - The service to read.
 - `options` (*optional*) - The configuration object.
     - `publication` (*optional* but *required* if `query` is specified.
@@ -95,10 +95,10 @@ messagesRealtime.connect()
     `(records, { action, eventName, record }) => ...`) - Function to call on mutation events.
     See example below.
     
-**Options** changeSort()
+**Options** changeSort() - Change the sort used for the records.
 - `sortFunc` (*optional*) - Same as `options.sort`.
 
-**
+**Options** connected - Is the replicator listening to Feathers service events?
 
 > **ProTip:** Replication events are always emitted. See example below.
 
