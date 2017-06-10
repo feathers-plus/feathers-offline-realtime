@@ -119,12 +119,16 @@ describe('snapshot', () => {
     it('non-paginated file', () => {
       const realtime = new Realtime(fromService);
 
+      assert.equal(realtime.connected, false);
+
       return realtime.connect()
         .then(() => {
           const records = realtime.store.records;
           assert.lengthOf(records, sampleLen);
 
           assert.deepEqual(records.sort(Realtime.sort('order')), data);
+
+          assert.equal(realtime.connected, true);
         });
     });
 

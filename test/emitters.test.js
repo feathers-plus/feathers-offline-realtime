@@ -39,10 +39,10 @@ describe('emitters', () => {
 
   describe('without publication', () => {
     let events;
-    
+
     beforeEach(() => {
       events = [];
-      
+
       return fromService.create(clone(data))
         .then(() => {
           realtime = new Realtime(fromService, { sort: Realtime.sort('order') });
@@ -55,17 +55,19 @@ describe('emitters', () => {
     it('create works', () => {
       return realtime.connect()
         .then(() => fromService.create({ id: 99, order: 99 }))
+        .then(() => realtime.disconnect())
         .then(() => {
           const records = realtime.store.records;
           data[sampleLen] = { id: 99, order: 99 };
 
           assert.lengthOf(records, sampleLen + 1);
           assert.deepEqual(records, data);
-          
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
             { eventName: 'created', action: 'mutated', record: { id: 99, order: 99 } },
+            { action: 'remove-listeners' }
           ]);
         });
     });
@@ -80,11 +82,11 @@ describe('emitters', () => {
 
           assert.lengthOf(records, sampleLen);
           assert.deepEqual(records, data);
-  
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'updated', action: 'mutated', record: { id: 0, order: 99 } },
+            { eventName: 'updated', action: 'mutated', record: { id: 0, order: 99 } }
           ]);
         });
     });
@@ -99,11 +101,11 @@ describe('emitters', () => {
 
           assert.lengthOf(records, sampleLen);
           assert.deepEqual(records, data);
-  
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'patched', action: 'mutated', record: { id: 1, order: 99 } },
+            { eventName: 'patched', action: 'mutated', record: { id: 1, order: 99 } }
           ]);
         });
     });
@@ -117,11 +119,11 @@ describe('emitters', () => {
 
           assert.lengthOf(records, sampleLen - 1);
           assert.deepEqual(records, data);
-          
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'removed', action: 'remove', record: { id: 2, order: 2 } },
+            { eventName: 'removed', action: 'remove', record: { id: 2, order: 2 } }
           ]);
         });
     });
@@ -133,7 +135,7 @@ describe('emitters', () => {
 
     beforeEach(() => {
       events = [];
-      
+
       return fromService.create(clone(data))
         .then(() => {
           realtime = new Realtime(fromService, {
@@ -142,7 +144,7 @@ describe('emitters', () => {
           });
 
           data.splice(testLen);
-  
+
           realtime.on('events', (records, last) => {
             events[events.length] = last;
           });
@@ -158,11 +160,11 @@ describe('emitters', () => {
 
           assert.lengthOf(records, testLen + 1);
           assert.deepEqual(records, data);
-  
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'created', action: 'mutated', record: { id: 99, order: 3.5 } },
+            { eventName: 'created', action: 'mutated', record: { id: 99, order: 3.5 } }
           ]);
         });
     });
@@ -174,7 +176,7 @@ describe('emitters', () => {
 
     beforeEach(() => {
       events = [];
-      
+
       return fromService.create(clone(data))
         .then(() => {
           realtime = new Realtime(fromService, {
@@ -183,7 +185,7 @@ describe('emitters', () => {
           });
 
           data.splice(testLen);
-  
+
           realtime.on('events', (records, last) => {
             events[events.length] = last;
           });
@@ -198,10 +200,10 @@ describe('emitters', () => {
 
           assert.lengthOf(records, testLen);
           assert.deepEqual(records, data);
-          
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
-            { action: 'add-listeners' },
+            { action: 'add-listeners' }
           ]);
         });
     });
@@ -213,7 +215,7 @@ describe('emitters', () => {
 
     beforeEach(() => {
       events = [];
-      
+
       return fromService.create(clone(data))
         .then(() => {
           realtime = new Realtime(fromService, {
@@ -222,7 +224,7 @@ describe('emitters', () => {
           });
 
           data.splice(testLen);
-  
+
           realtime.on('events', (records, last) => {
             events[events.length] = last;
           });
@@ -238,11 +240,11 @@ describe('emitters', () => {
 
           assert.lengthOf(records, testLen - 1);
           assert.deepEqual(records, data);
-  
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'patched', action: 'left-pub', record: { id: 1, order: 99 } },
+            { eventName: 'patched', action: 'left-pub', record: { id: 1, order: 99 } }
           ]);
         });
     });
@@ -256,11 +258,11 @@ describe('emitters', () => {
 
           assert.lengthOf(records, testLen + 1);
           assert.deepEqual(records, data);
-  
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'patched', action: 'mutated', record: { id: 4, order: 3.5 } },
+            { eventName: 'patched', action: 'mutated', record: { id: 4, order: 3.5 } }
           ]);
         });
     });

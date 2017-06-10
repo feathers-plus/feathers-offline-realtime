@@ -14,29 +14,29 @@ export default class Realtime {
     this._publication = options.publication;
     this._sort = options.sort;
     this.replicator = new Transactional(service, options);
-  
+
     this.on = (...args) => this.replicator.on(...args);
     this.store = this.replicator.store;
   }
-  
+
   connect () {
     this.replicator.removeListeners();
-  
+
     return snapshot(this._service, this._query)
       .then(records => {
         records = this._publication ? records.filter(this._publication) : records;
         records = this._sort ? records.sort(this._sort) : records;
-        
+
         this.replicator.snapshot(records);
         this.replicator.addListeners();
-      })
+      });
   }
-  
+
   disconnect () {
     this.replicator.removeListeners();
   }
-  
-  get connected() {
+
+  get connected () {
     return this.replicator.listening;
   }
 

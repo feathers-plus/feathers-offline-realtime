@@ -1,5 +1,5 @@
 
-//import NodeEventEmitter from 'node-event-emitter';
+// import NodeEventEmitter from 'node-event-emitter';
 import Events from 'events';
 
 import makeDebug from 'debug';
@@ -15,7 +15,7 @@ export default class Transactional extends Events {
     this._sort = options.sort;
     this._subscriber = options.subscriber || (() => {});
     this.listening = false;
-  
+
     this._listener = eventName => remoteRecord => this.mutateStore(eventName, remoteRecord);
 
     this._eventListeners = {
@@ -58,16 +58,16 @@ export default class Transactional extends Events {
 
   removeListeners () {
     debug('removeListeners entered');
-    
+
     if (this.listening) {
       const service = this._service;
       const eventListeners = this._eventListeners;
-  
+
       service.removeListener('created', eventListeners.created);
       service.removeListener('updated', eventListeners.updated);
       service.removeListener('patched', eventListeners.patched);
       service.removeListener('removed', eventListeners.removed);
-  
+
       this.listening = false;
       this.emit('events', this.store.records, { action: 'remove-listeners' });
       this._subscriber(this.store.records, { action: 'remove-listeners' });
@@ -107,7 +107,7 @@ export default class Transactional extends Events {
     function broadcast (action) {
       debug(`emitted ${index} ${eventName} ${action}`);
       store.last = { eventName, action, record: remoteRecord };
-  
+
       that.emit('events', records, store.last);
       that._subscriber(records, store.last);
     }

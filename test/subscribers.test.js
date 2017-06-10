@@ -39,15 +39,15 @@ describe('subscribers', () => {
 
   describe('without publication', () => {
     let events;
-    
+
     beforeEach(() => {
       events = [];
-      
+
       return fromService.create(clone(data))
         .then(() => {
           realtime = new Realtime(fromService, {
             sort: Realtime.sort('order'),
-            subscriber: (records, last) => { events[events.length] = last },
+            subscriber: (records, last) => { events[events.length] = last; }
           });
         });
     });
@@ -55,17 +55,19 @@ describe('subscribers', () => {
     it('create works', () => {
       return realtime.connect()
         .then(() => fromService.create({ id: 99, order: 99 }))
+        .then(() => realtime.disconnect())
         .then(() => {
           const records = realtime.store.records;
           data[sampleLen] = { id: 99, order: 99 };
 
           assert.lengthOf(records, sampleLen + 1);
           assert.deepEqual(records, data);
-          
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
             { eventName: 'created', action: 'mutated', record: { id: 99, order: 99 } },
+            { action: 'remove-listeners' }
           ]);
         });
     });
@@ -80,11 +82,11 @@ describe('subscribers', () => {
 
           assert.lengthOf(records, sampleLen);
           assert.deepEqual(records, data);
-  
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'updated', action: 'mutated', record: { id: 0, order: 99 } },
+            { eventName: 'updated', action: 'mutated', record: { id: 0, order: 99 } }
           ]);
         });
     });
@@ -99,11 +101,11 @@ describe('subscribers', () => {
 
           assert.lengthOf(records, sampleLen);
           assert.deepEqual(records, data);
-  
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'patched', action: 'mutated', record: { id: 1, order: 99 } },
+            { eventName: 'patched', action: 'mutated', record: { id: 1, order: 99 } }
           ]);
         });
     });
@@ -117,11 +119,11 @@ describe('subscribers', () => {
 
           assert.lengthOf(records, sampleLen - 1);
           assert.deepEqual(records, data);
-          
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'removed', action: 'remove', record: { id: 2, order: 2 } },
+            { eventName: 'removed', action: 'remove', record: { id: 2, order: 2 } }
           ]);
         });
     });
@@ -133,13 +135,13 @@ describe('subscribers', () => {
 
     beforeEach(() => {
       events = [];
-      
+
       return fromService.create(clone(data))
         .then(() => {
           realtime = new Realtime(fromService, {
             sort: Realtime.sort('order'),
             publication: record => record.order <= 3.5,
-            subscriber: (records, last) => { events[events.length] = last },
+            subscriber: (records, last) => { events[events.length] = last; }
           });
 
           data.splice(testLen);
@@ -155,11 +157,11 @@ describe('subscribers', () => {
 
           assert.lengthOf(records, testLen + 1);
           assert.deepEqual(records, data);
-  
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'created', action: 'mutated', record: { id: 99, order: 3.5 } },
+            { eventName: 'created', action: 'mutated', record: { id: 99, order: 3.5 } }
           ]);
         });
     });
@@ -171,13 +173,13 @@ describe('subscribers', () => {
 
     beforeEach(() => {
       events = [];
-      
+
       return fromService.create(clone(data))
         .then(() => {
           realtime = new Realtime(fromService, {
             sort: Realtime.sort('order'),
             publication: record => record.order <= 3.5,
-            subscriber: (records, last) => { events[events.length] = last },
+            subscriber: (records, last) => { events[events.length] = last; }
           });
 
           data.splice(testLen);
@@ -192,10 +194,10 @@ describe('subscribers', () => {
 
           assert.lengthOf(records, testLen);
           assert.deepEqual(records, data);
-          
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
-            { action: 'add-listeners' },
+            { action: 'add-listeners' }
           ]);
         });
     });
@@ -207,13 +209,13 @@ describe('subscribers', () => {
 
     beforeEach(() => {
       events = [];
-      
+
       return fromService.create(clone(data))
         .then(() => {
           realtime = new Realtime(fromService, {
             sort: Realtime.sort('order'),
             publication: record => record.order <= 3.5,
-            subscriber: (records, last) => { events[events.length] = last },
+            subscriber: (records, last) => { events[events.length] = last; }
           });
 
           data.splice(testLen);
@@ -229,11 +231,11 @@ describe('subscribers', () => {
 
           assert.lengthOf(records, testLen - 1);
           assert.deepEqual(records, data);
-  
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'patched', action: 'left-pub', record: { id: 1, order: 99 } },
+            { eventName: 'patched', action: 'left-pub', record: { id: 1, order: 99 } }
           ]);
         });
     });
@@ -247,11 +249,11 @@ describe('subscribers', () => {
 
           assert.lengthOf(records, testLen + 1);
           assert.deepEqual(records, data);
-  
+
           assert.deepEqual(events, [
             { action: 'snapshot' },
             { action: 'add-listeners' },
-            { eventName: 'patched', action: 'mutated', record: { id: 4, order: 3.5 } },
+            { eventName: 'patched', action: 'mutated', record: { id: 4, order: 3.5 } }
           ]);
         });
     });
