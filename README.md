@@ -76,9 +76,34 @@ function subscriber(records, { action, eventName, record }) => {
 }
 ```
 
+## Example using periodic inspection
+
+```js
+const Realtime = require('feathers-offline-realtime');
+
+const app = ... // Configure Feathers, including the `/messages` service.
+const username = ... // The username authenticated on this client
+const messages = app.service('/messages');
+
+const messagesRealtime = new Realtime(messages, {
+  query: { username },
+  publication: record => record.username === username && record.inappropriate === false,
+  sort: Realtime.multiSort({ channel: 1, topic: 1 }),
+});
+
+setTimeout(() => {
+  const { records, last: { action, eventName, record }} = messagesRealtime.store;
+  console.log('last mutation:', action, eventName, record);
+  console.log('realtime records:', records);
+  console.log('event listeners active:', messagesRealtime.connected);
+}, 5 * 60 * 1000);
+
+
+```
+
 ## Event information
 
-Event and subscriber handlers receive the same information:
+All handlers receive the following information:
 
 - `action` - The latest replication action.
 - `eventName` - The Feathers realtime service event.
@@ -122,7 +147,7 @@ Let's consider an application which shows historical stock prices.
 ![stock price panel](./assets/realtime-3a.jpg)
 
 The realtime strategy would snapshot the initial historical data.
-It would then the local data with every addition or other mutation made on the remote.
+It would then update the local data with every addition or other mutation made on the remote.
 
 
 #### Sources:
