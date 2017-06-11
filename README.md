@@ -12,8 +12,11 @@ You can keep on the client a near realtime replica of (some of) the records
 in a service configured on the server.
 This may make your client more performant, so it appears "snappier."
 
-You can replicate just a subset of the records in the service by providing a "publication" function
+You can replicate just a subset of the records in the service by providing
+an optional "publication" function
 which, given a record, determines if the record belongs in the publication.
+The publication function may be as complicated as you need though it must be synchronous.
+
 You or some other party may update the record so that it no longer belongs to the publication,
 or so that it now belongs.
 The replicator handles these situations.
@@ -25,14 +28,6 @@ only those records belonging to the client's user.
 
 A [snapshot replication](https://github.com/feathersjs/feathers-offline-snapshot)
 is used to initially obtain the records.
-By default, the publication function will be run against every record in the service.
-You may however provide a
-[Feathers query object](https://docs.feathersjs.com/api/databases/querying.html)
-to reduce the number of records read initially.
-The publication function will still be run against these records.
-
-> **ProTip:** A publication function is required whenever you provide the query object,
-and the publication must be at least as restrictive as the query.
 
 The realtime replicator can notify you of data mutations by emitting an event and/or
 calling a subscription function for every notification.
@@ -49,6 +44,29 @@ in either ascending or descending order.
 
 You can dynamically change the sort order as your needs change.
 This can be very useful for your UI.
+
+
+#### Snapshot performance
+
+By default, the publication function will be run against every record in the service
+during a snapshot.
+This may lead to inefficiencies should, for example, a service contain records for 1,000 users
+and you want to replicate just the records for just one of them.
+
+To avoid such situations, you may provide a
+[Feathers query object](https://docs.feathersjs.com/api/databases/querying.html),
+suitable for use in a `.find({ query })` call,
+to reduce the number of records read initially.
+The publication function will still be run against the returned records.
+
+> **ProTip:** A publication function is required whenever you provide the query object,
+and the publication must be at least as restrictive as the query.
+
+
+
+> **ProTip:** You may find it convenient to use publication functions with
+the same query object as their input.
+For example `publication: require('sift').sift({ username: 'John' )`.
 
 
 ## Installation
