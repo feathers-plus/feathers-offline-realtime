@@ -76,7 +76,6 @@ For example `publication: require('sift').sift({ username: 'John' )`.
 npm install feathers-offline-realtime --save
 ```
 
-
 ## Documentation
 
 ```javascript
