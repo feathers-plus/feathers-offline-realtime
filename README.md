@@ -17,8 +17,8 @@ an optional "publication" function
 which, given a record, determines if the record belongs in the publication.
 The publication function may be as complicated as you need though it must be synchronous.
 
-You or some other party may update the record so that it no longer belongs to the publication,
-or so that it now belongs.
+You or some other party may update a record so that it no longer belongs to the publication,
+or so that it newly belongs.
 The replicator handles these situations.
 
 Many apps have unique data for every user.
@@ -33,11 +33,12 @@ The realtime replicator can notify you of data mutations by emitting an event an
 calling a subscription function for every notification.
 You can in addition periodically poll the replicator to obtain the current realtime records.
 
-> **ProTip:** Every Feathers service event on the server is sent to the client.
+> **ProTip:** Every Feathers service event on the server is sent to the client
+unless you [filter those events](https://docs.feathersjs.com/api/events.html#event-filtering).
 
 You can control the order of the realtime records by providing a sorting function
-compatible with `array.sort(options.sort)`.
-Two sorting functions are provided for your convenience with this repo:
+compatible with `array.sort(...)`.
+Two sorting functions are included in this repo for your convenience:
 - `Realtime.sort(fieldName)` sorts on the `fieldName` in ascending order.
 - `Realtime.multiSort({ fieldName1: 1, fieldName2: -1 })` sorts on multiple fields
 in either ascending or descending order.
@@ -86,14 +87,14 @@ const messagesRealtime = new Realtime(messages, options);
 
 messagesRealtime.connect()
   .then(() => {
-    messagesRealtime.changeSort(Realtime.multiSort(sortFunc));
+    messagesRealtime.changeSort(Realtime.multiSort(...));
     console.log(messagesRealtime.connected);
   });
 
 
 ```
 
-**Options** Realtime() - Create a realtime replicator.
+**Options: Realtime(service, options)** - Create a realtime replicator.
 - `service` (*required*) - The service to read.
 - `options` (*optional*) - The configuration object.
     - `publication` (*optional* but *required* if `query` is specified.
@@ -102,27 +103,34 @@ messagesRealtime.connect()
     - `query` (*optional*) - The
     [Feathers query object](https://docs.feathersjs.com/api/databases/querying.html)
     to reduce the number of records read during the snapshot.
-    The props $sort and $select are not allowed.
-    Some of the props it may include are:
-        - `$limit` (*optional*, default: 200) - Records to read at a time.
-        The service's configuration may limit the actual number read.
-        - `$skip` (*optional*, default: 0) will initially skip this number of records.
-    - `sort` (*optional* Function with signature `(a, b) => 1 || -1 || 0`) - A function
-    compatible with `array.sort(options.sort)`.
+    The props $limit, $skip, $sort and $select are not allowed.
+    - `sort` (*required* Function with signature `(a, b) => 1 || -1 || 0`) - A function
+    compatible with `array.sort(...)`.
     - `subscriber` (*optional* Function with signature
     `(records, { action, eventName, record }) => ...`) - Function to call on mutation events.
     See example below.
     
-**Options** changeSort() - Change the sort used for the records.
-- `sortFunc` (*optional*) - Same as `options.sort`.
+**Options: connect()** - Create a new snapshot and start listening to events.
 
-**Options** connected - Is the replicator listening to Feathers service events?
+**Options: disconnect()** - Stop listening to events. The current realtime records remain.
+
+**Options: connected()** - Is the replicator listening to Feathers service events?
+    
+**Options: changeSort(sorter)** - Change the sort used for the records.
+- `sorter` (*required*) - Same as `options.sort`.
+
+**Options: Realtime.sort(name)** - Suitable for use with `array.sort(...)`.
+Sort on a field in ascending order.
+- `name` (*required*) - The name of the field to sort on.
+
+**Options: Realtime.multiSort(sortDefn)** - Suitable for use with `array.sort(...)`.
+Sort on multiple fields, in ascending or descending order.
+- `sortDfn` (*required*) - Has the format `{ fieldName: order, ... }`.
+    - `fieldName` (*required) - The name of the field to sort on.
+    - `order` (*required*) - Use 1 for ascending order, -1 for decending.
 
 > **ProTip:** Replication events are always emitted. See example below.
 
-
-discuss query vs publication
-connected()
 
 ## Example using event emitters
 
@@ -152,12 +160,6 @@ messagesRealtime.connect()
 ## Example using a subscriber
 
 ```js
-const Realtime = require('feathers-offline-realtime');
-
-const app = ... // Configure Feathers, including the `/messages` service.
-const username = ... // The username authenticated on this client
-const messages = app.service('/messages');
-
 const messagesRealtime = new Realtime(messages, {
   query: { username },
   publication: record => record.username === username && record.inappropriate === false,
@@ -178,12 +180,6 @@ function subscriber(records, { action, eventName, record }) => {
 ## Example using periodic inspection
 
 ```js
-const Realtime = require('feathers-offline-realtime');
-
-const app = ... // Configure Feathers, including the `/messages` service.
-const username = ... // The username authenticated on this client
-const messages = app.service('/messages');
-
 const messagesRealtime = new Realtime(messages, {
   query: { username },
   publication: record => record.username === username && record.inappropriate === false,
@@ -196,8 +192,33 @@ setTimeout(() => {
   console.log('realtime records:', records);
   console.log('event listeners active:', messagesRealtime.connected);
 }, 5 * 60 * 1000);
+```
 
+## Example using a publication with a query object
 
+```js
+const Realtime = require('feathers-offline-realtime');
+const sift = require('sift');
+
+const app = ... // Configure Feathers, including the `/messages` service.
+const username = ... // The username authenticated on this client
+const messages = app.service('/messages');
+const query = { username };
+
+const messagesRealtime = new Realtime(messages, {
+  query,
+  publication: sift(query),
+  sort: Realtime.multiSort({ channel: 1, topic: 1 }),
+});
+
+messagesRealtime.on('events', (records, { action, eventName, record }) => {
+  console.log('last mutation:', action, eventName, record);
+  console.log('realtime records:', records);
+  console.log('event listeners active:', messagesRealtime.connected);
+});
+
+messagesRealtime.connect()
+  .then(() => ...);
 ```
 
 ## Event information
@@ -219,7 +240,7 @@ All handlers receive the following information:
 | change-sort      |     -     |    -   |   yes   | records resorted using the new sort criteria
 | remove-listeners |     _     |    -   |   yes   | stopped listening to service events
 
-| **eventName:** `created`, `updated`, `patched` or `removed`.
+| `eventName` may be `created`, `updated`, `patched` or `removed`.
 
 ## What is the Realtime strategy?
 
