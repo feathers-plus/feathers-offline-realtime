@@ -1,5 +1,16 @@
 # Change Log
 
+## [v0.0.2](https://github.com/feathersjs/feathers-offline-realtime/tree/v0.0.2) (2017-06-21)
+[Full Changelog](https://github.com/feathersjs/feathers-offline-realtime/compare/v0.0.1...v0.0.2)
+
+**Implemented enhancements:**
+
+- Updated README to reference feathers-offline-publication [\#2](https://github.com/feathersjs/feathers-offline-realtime/pull/2) ([eddyystop](https://github.com/eddyystop))
+
+**Closed issues:**
+
+- Action required: Greenkeeper could not be activated 🚨 [\#1](https://github.com/feathersjs/feathers-offline-realtime/issues/1)
+
 ## [v0.0.1](https://github.com/feathersjs/feathers-offline-realtime/tree/v0.0.1) (2017-06-10)
 
 
