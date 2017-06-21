@@ -33,8 +33,18 @@ The realtime replicator can notify you of data mutations by emitting an event an
 calling a subscription function for every notification.
 You can in addition periodically poll the replicator to obtain the current realtime records.
 
-> **ProTip:** Every Feathers service event on the server is sent to the client
-unless you [filter those events](https://docs.feathersjs.com/api/events.html#event-filtering).
+
+> **ProTip:** By default, the client will receive every service event.
+You may however use `feathers-offline-publication`,
+as mentioned below for `new Realtime(service, options)`,
+to reduce the number of service events received by the client to a minimum.
+This may noticeable improve performance, especially on mobile devices,
+as the client will consume less bandwidth.
+
+
+> **ProTip:** You can also
+[filter these events](https://docs.feathersjs.com/api/events.html#event-filtering)
+manually.
 
 You can control the order of the realtime records by providing a sorting function
 compatible with `array.sort(...)`.
@@ -94,7 +104,7 @@ messagesRealtime.connect()
 
 ```
 
-**Options: Realtime(service, options)** - Create a realtime replicator.
+**Options: new Realtime(service, options)** - Create a realtime replicator.
 - `service` (*required*) - The service to read.
 - `options` (*optional*) - The configuration object.
     - `publication` (*optional* but *required* if `query` is specified.
@@ -109,6 +119,13 @@ messagesRealtime.connect()
     - `subscriber` (*optional* Function with signature
     `(records, { action, eventName, record }) => ...`) - Function to call on mutation events.
     See example below.
+    
+> **ProTip:** You can use `clientPublications.addPublication(clientApp, serviceName, options)`
+from `feathers-offline-publication`.
+That will not only return a suitable function for `production`,
+but it will also minimize the number of service events received by the client.
+This may noticeable improve performance, especially on mobile devices,
+as the client will consume less bandwidth.
     
 **Options: connect()** - Create a new snapshot and start listening to events.
 
@@ -170,7 +187,7 @@ const messagesRealtime = new Realtime(messages, {
 messagesRealtime.connect()
   .then(() => ...);
 
-function subscriber(records, { action, eventName, record }) => {
+function subscriber(records, ({ action, eventName, record }) => {
   console.log('last mutation:', action, eventName, record);
   console.log('realtime records:', records);
   console.log('event listeners active:', messagesRealtime.connected);
@@ -238,7 +255,7 @@ All handlers receive the following information:
 | left-pub         | see below |   yes  |   yes   | mutated record is no longer within publication
 | remove           | see below |   yes  |   yes   | record within publication has been deleted
 | change-sort      |     -     |    -   |   yes   | records resorted using the new sort criteria
-| remove-listeners |     _     |    -   |   yes   | stopped listening to service events
+| remove-listeners |     -     |    -   |   yes   | stopped listening to service events
 
 | `eventName` may be `created`, `updated`, `patched` or `removed`.
 
