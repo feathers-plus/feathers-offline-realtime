@@ -130,7 +130,7 @@ as the client will consume less bandwidth.
 
 **Options: disconnect()** - Stop listening to events. The current realtime records remain.
 
-**Options: connected()** - Is the replicator listening to Feathers service events?
+**Options: connected** - Is the replicator listening to Feathers service events?
     
 **Options: changeSort(sorter)** - Change the sort used for the records.
 - `sorter` (*required*) - Same as `options.sort`.
