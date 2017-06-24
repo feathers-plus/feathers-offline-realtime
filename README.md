@@ -119,6 +119,9 @@ messagesRealtime.connect()
     `(records, { action, eventName, record }) => ...`) - Function to call on mutation events.
     See example below.
     
+> **ProTip:** Consider the commonPublications in
+[`feathers-offline-publication`](https://github.com/feathersjs/feathers-offline-publication/blob/master/src/common-publications.js).
+    
 > **ProTip:** You can use `clientPublications.addPublication(clientApp, serviceName, options)`
 from `feathers-offline-publication`.
 That will not only return a suitable function for `production`,
