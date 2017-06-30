@@ -6,11 +6,18 @@
 [![Dependency Status](https://img.shields.io/david/feathersjs/feathers-offline-realtime.svg?style=flat-square)](https://david-dm.org/feathersjs/feathers-offline-realtime)
 [![Download Status](https://img.shields.io/npm/dm/feathers-offline-realtime.svg?style=flat-square)](https://www.npmjs.com/package/feathers-offline-realtime)
 
-> Offline-first realtime replication. Realtime, read-only publication from a service.
+> Offline-first realtime replication with optimistic updates.
 
 You can keep on the client a near realtime replica of (some of) the records
 in a service configured on the server.
-This may make your client more performant, so it appears "snappier."
+
+You can optimistically create, modify and remove records in the client replica
+using standard Feathers service calls.
+These mutations are also asynchronously performed on the server,
+and those delayed results may themselves mutate the client replica.
+Any errors on the server will revert the data in the client replica. 
+
+These features may make your client more performant, so it appears "snappier."
 
 You can replicate just a subset of the records in the service by providing
 an optional "publication" function
@@ -46,15 +53,15 @@ as the client will consume less bandwidth.
 [filter these events](https://docs.feathersjs.com/api/events.html#event-filtering)
 manually.
 
-You can control the order of the realtime records by providing a sorting function
-compatible with `array.sort(...)`.
+You can control the order of the realtime records in the client replica
+by providing a sorting function compatible with `array.sort(...)`.
 Two sorting functions are included in this repo for your convenience:
 - `Realtime.sort(fieldName)` sorts on the `fieldName` in ascending order.
 - `Realtime.multiSort({ fieldName1: 1, fieldName2: -1 })` sorts on multiple fields
 in either ascending or descending order.
 
 You can dynamically change the sort order as your needs change.
-This can be very useful for your UI.
+This can be useful for your UI.
 
 
 #### Snapshot performance
@@ -88,6 +95,7 @@ npm install feathers-offline-realtime --save
 
 ## Documentation
 
+Realtime read-only replication:
 ```javascript
 import Realtime from 'feathers-offline-realtime';
 const messages = app.service('/messages');
@@ -96,11 +104,29 @@ const messagesRealtime = new Realtime(messages, options);
 
 messagesRealtime.connect()
   .then(() => {
-    messagesRealtime.changeSort(Realtime.multiSort(...));
     console.log(messagesRealtime.connected);
+    messagesRealtime.changeSort(Realtime.multiSort(...));
   });
+```
 
+Realtime replication with optimistic mutation:
+```javascript
+import Realtime from 'feathers-offline-realtime';
+import optimisticMutator from 'feathers-offline-realtime/optimistic-mutator';
+const messages = app.service('/messages');
 
+const messagesRealtime = new Realtime(messages, Object.assign({}, options, { uuid: true }));
+
+const app = feathers() ...
+app.use('clientMessages', optimisticMutator({ replicator: messagesRealtime }));
+const clientMessages = app.service('clientMessages');
+
+messagesRealtime.connect()
+  .then(() => clientMessages.create({ ... }))
+  .then(record => {
+    console.log(messagesRealtime.connected, record);
+    messagesRealtime.changeSort(Realtime.multiSort(...));
+  });
 ```
 
 **Options: new Realtime(service, options)** - Create a realtime replicator.
@@ -118,6 +144,9 @@ messagesRealtime.connect()
     - `subscriber` (*optional* Function with signature
     `(records, { action, eventName, record }) => ...`) - Function to call on mutation events.
     See example below.
+    - `uuid` (*optional* boolean) - The records contain a `uuid` field
+    and it should be used as the key rather than `id` or `_id`.
+    `uuid: true` is required when optimistic mutation is being used.
     
 > **ProTip:** You may want to use some of the common publications available in
 [`feathers-offline-publication`](https://github.com/feathersjs/feathers-offline-publication/blob/master/src/common-publications.js).
@@ -146,9 +175,21 @@ Sort on a field in ascending order.
 Sort on multiple fields, in ascending or descending order.
 - `sortDfn` (*required*) - Has the format `{ fieldName: order, ... }`.
     - `fieldName` (*required) - The name of the field to sort on.
-    - `order` (*required*) - Use 1 for ascending order, -1 for decending.
+    - `order` (*required*) - Use 1 for ascending order, -1 for descending.
+    
+**Options: app.use(path, optimisticMutator({ replicator }));** - Configure a service
+to optimistically mutate the client replica while asynchronously mutating on the server.
+- `replicator` (*required*) - The handle returned by the replicator.
+- `paginate` (*optional*) - A
+[pagination object](https://docs.feathersjs.com/api/databases/common.html#pagination)
+containing a default and max page size.
 
-> **ProTip:** Replication events are always emitted. See example below.
+> **ProTip:** Two events are emitted for each optimistic mutation of the client replica.
+The first occurs when the client replica is mutated.
+It is identified by `source = 1` (see Event information below).
+A successful server mutation produces another event having `source = 0`.
+A failed server mutation reverts the record in the client replica back to its original value.
+That produces an event having `source = 2`.
 
 
 ## Example using event emitters
@@ -246,20 +287,31 @@ All handlers receive the following information:
 
 - `action` - The latest replication action.
 - `eventName` - The Feathers realtime service event.
+- `source` - Cause of mutation:
+    - 0 = service event.
+    - 1 = optimistic mutation.
+    - 2 = revert to original record when an optimistic mutation results in an error on the server.
 - `record` - The record associated with `eventName`.
 - `records` - The realtime, sorted records.
 
-| action           | eventName | record | records | description
-|------------------|-----------|--------|---------|--------------------------
-| snapshot         |     -     |    -   |   yes   | snapshot performed
-| add-listeners    |     -     |    -   |   yes   | started listening to service events
-| mutated          | see below |   yes  |   yes   | record added to or mutated within publication
-| left-pub         | see below |   yes  |   yes   | mutated record is no longer within publication
-| remove           | see below |   yes  |   yes   | record within publication has been deleted
-| change-sort      |     -     |    -   |   yes   | records resorted using the new sort criteria
-| remove-listeners |     -     |    -   |   yes   | stopped listening to service events
+| action           | eventName | record | records | source | description
+|------------------|-----------|--------|---------|--------|--------------------------
+| snapshot         |     -     |    -   |   yes   |    -   | snapshot performed
+| add-listeners    |     -     |    -   |   yes   |    -   | started listening to service events
+| mutated          | see below |   yes  |   yes   |   yes  | record added to or mutated within publication
+| left-pub         | see below |   yes  |   yes   |   yes  | mutated record is no longer within publication
+| remove           | see below |   yes  |   yes   |   yes  | record within publication has been deleted
+| change-sort      |     -     |    -   |   yes   |    -   | records resorted using the new sort criteria
+| remove-listeners |     -     |    -   |   yes   |    -   | stopped listening to service events
 
 | `eventName` may be `created`, `updated`, `patched` or `removed`.
+
+> **ProTip:** Two events are emitted for each optimistic mutation of the client replica.
+The first occurs when the client replica is mutated.
+It is identified by `source = 1` (see Event information below).
+A successful server mutation produces another event having `source = 0`.
+A failed server mutation reverts the record in the client replica back to its original value.
+That produces an event having `source = 2`.
 
 ## What is the Realtime strategy?
 
@@ -277,7 +329,6 @@ Realtime is appropriate in each of the following cases:
 For example, if a row changes five times, realtime allows an application to respond to each change
 (such as running hooks), not simply to the net data change to the row.
 - The remote has a very high volume of create, update, patch, and remove activity.
-- Realtime should be treated as **read-only**, because local changes are not propagated back to the remote.
 
 ## Realtime Case Study
 

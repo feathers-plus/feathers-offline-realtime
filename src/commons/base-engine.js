@@ -1,22 +1,22 @@
 
-// import NodeEventEmitter from 'node-event-emitter';
-import Events from 'events';
+import EventEmitter from 'component-emitter';
 
 import makeDebug from 'debug';
-const debug = makeDebug('feathers-offline-realtime');
+const debug = makeDebug('base-engine');
 
-export default class Transactional extends Events {
+export default class BaseEngine {
   constructor (service, options = {}) {
     debug('constructor entered');
-    super();
 
     this._service = service;
     this._publication = options.publication;
     this._subscriber = options.subscriber || (() => {});
-    this.sorter = options.sort;
-    this.listening = false;
+    this._sorter = options.sort;
+    this._eventEmitter = new EventEmitter();
 
-    this._listener = eventName => remoteRecord => this._mutateStore(eventName, remoteRecord);
+    this._listener = eventName => remoteRecord => this._mutateStore(
+      eventName, remoteRecord, 0
+    );
 
     this._eventListeners = {
       created: this._listener('created'),
@@ -24,6 +24,11 @@ export default class Transactional extends Events {
       patched: this._listener('patched'),
       removed: this._listener('removed')
     };
+
+    this.useUuid = options.uuid;
+    this.emit = this._eventEmitter.emit;
+    this.on = this._eventEmitter.on;
+    this.listening = false;
 
     this.store = {
       last: { eventName: '', action: '', record: {} },
@@ -74,22 +79,30 @@ export default class Transactional extends Events {
     }
   }
 
-  _mutateStore (eventName, remoteRecord) {
+  _mutateStore (eventName, remoteRecord, source) {
     debug(`_mutateStore started: ${eventName}`);
+    // ******************** console.log(`_mutateStore started: ${eventName} ${source}`, remoteRecord);
     const that = this;
 
-    const idName = ('id' in remoteRecord) ? 'id' : '_id';
+    const idName = this._useUuid ? 'uuid' : ('id' in remoteRecord ? 'id' : '_id');
     const store = this.store;
     const records = store.records;
 
-    const index = findIndex(records, record => record[idName] === remoteRecord[idName]);
+    const index = this._findIndex(records, record => record[idName] === remoteRecord[idName]);
 
     if (index >= 0) {
       records.splice(index, 1);
     }
 
     if (eventName === 'removed') {
-      return index >= 0 ? broadcast('remove') : undefined;
+      if (index >= 0) {
+        broadcast('remove');
+      } else if (source === 0 && (!this._publication || this._publication(remoteRecord))) {
+        // Emit service event if it corresponds to a previous optimistic remove
+        broadcast('remove');
+      }
+
+      return; // index >= 0 ? broadcast('remove') : undefined;
     }
 
     if (this._publication && !this._publication(remoteRecord)) {
@@ -98,15 +111,15 @@ export default class Transactional extends Events {
 
     records[records.length] = remoteRecord;
 
-    if (this.sorter) {
-      records.sort(this.sorter);
+    if (this._sorter) {
+      records.sort(this._sorter);
     }
 
     return broadcast('mutated');
 
     function broadcast (action) {
       debug(`emitted ${index} ${eventName} ${action}`);
-      store.last = { eventName, action, record: remoteRecord };
+      store.last = { source, action, eventName, record: remoteRecord };
 
       that.emit('events', records, store.last);
       that._subscriber(records, store.last);
@@ -114,23 +127,23 @@ export default class Transactional extends Events {
   }
 
   changeSort (sort) {
-    this.sorter = sort;
+    this._sorter = sort;
 
-    if (this.sorter) {
-      this.store.records.sort(this.sorter);
+    if (this._sorter) {
+      this.store.records.sort(this._sorter);
     }
 
     this.emit('events', this.store.records, { action: 'change-sort' });
     this._subscriber(this.store.records, { action: 'change-sort' });
   }
-}
 
-function findIndex (array, predicate = () => true, fromIndex = 0) {
-  for (let i = fromIndex, len = array.length; i < len; i++) {
-    if (predicate(array[i])) {
-      return i;
+  _findIndex (array, predicate = () => true, fromIndex = 0) {
+    for (let i = fromIndex, len = array.length; i < len; i++) {
+      if (predicate(array[i])) {
+        return i;
+      }
     }
-  }
 
-  return -1;
+    return -1;
+  }
 }

@@ -1,68 +1,20 @@
 
-import snapshot from 'feathers-offline-snapshot';
-import Transactional from './transactional';
+import BaseReplicator from './commons/base-replicator';
+import RealtimeEngine from './realtime-engine';
 
 import makeDebug from 'debug';
-const debug = makeDebug('feathers-offline-realtime');
+const debug = makeDebug('realtime-replicator');
 
-export default class Realtime {
+export default class RealtimeReplicator extends BaseReplicator {
   constructor (service, options = {}) {
-    debug('constructor entered');
+    debug('constructor started');
+    super(service, options);
 
-    this._service = service;
-    this._query = options.query || {};
-    this._publication = options.publication;
-    this.replicator = new Transactional(service, options);
+    const engine = this.engine = new RealtimeEngine(service, options);
+    this.changeSort = (...args) => engine.changeSort(...args);
+    this.on = (...args) => engine.on(...args);
+    this.store = engine.store;
 
-    this.changeSort = (...args) => this.replicator.changeSort(...args);
-    this.on = (...args) => this.replicator.on(...args);
-    this.store = this.replicator.store;
-  }
-
-  get connected () {
-    return this.replicator.listening;
-  }
-
-  connect () {
-    this.replicator.removeListeners();
-
-    return snapshot(this._service, this._query)
-      .then(records => {
-        records = this._publication ? records.filter(this._publication) : records;
-        records = this.replicator.sorter ? records.sort(this.replicator.sorter) : records;
-
-        this.replicator.snapshot(records);
-        this.replicator.addListeners();
-      });
-  }
-
-  disconnect () {
-    this.replicator.removeListeners();
-  }
-
-  // array.sort(Realtime.sort('fieldName'));
-  static sort (prop) {
-    return (a, b) => a[prop] > b[prop] ? 1 : (a[prop] < b[prop] ? -1 : 0);
-  }
-
-  // array.sort(Realtime.multiSort({ field1: 1, field2: -1 }))
-  static multiSort (order) {
-    const props = Object.keys(order);
-    const len = props.length;
-
-    return (a, b) => {
-      let result = 0;
-      let i = 0;
-
-      while (result === 0 && i < len) {
-        const prop = props[i];
-        const sense = order[prop];
-
-        result = a[prop] > b[prop] ? 1 * sense : (a[prop] < b[prop] ? -1 * sense : 0);
-        i++;
-      }
-
-      return result;
-    };
+    debug('constructor ended');
   }
 }
