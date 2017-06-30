@@ -48,7 +48,7 @@ export default function (Replicator, desc) {
         return fromService.create(clone(data))
           .then(() => {
             replicator = new Replicator(fromService, {
-              sort: Replicator.sort('order'),
+              sort: Replicator.sort('order')
             });
             replicator.on('events', (records, last) => {
               events[events.length] = last;
@@ -144,7 +144,7 @@ export default function (Replicator, desc) {
           .then(() => {
             replicator = new Replicator(fromService, {
               sort: Replicator.sort('order'),
-              publication: record => record.order <= 3.5,
+              publication: record => record.order <= 3.5
             });
             
             data.splice(testLen);
@@ -185,7 +185,7 @@ export default function (Replicator, desc) {
           .then(() => {
             replicator = new Replicator(fromService, {
               sort: Replicator.sort('order'),
-              publication: record => record.order <= 3.5,
+              publication: record => record.order <= 3.5
             });
             
             data.splice(testLen);
@@ -224,7 +224,7 @@ export default function (Replicator, desc) {
           .then(() => {
             replicator = new Replicator(fromService, {
               sort: Replicator.sort('order'),
-              publication: record => record.order <= 3.5,
+              publication: record => record.order <= 3.5
             });
             
             data.splice(testLen);
@@ -272,7 +272,7 @@ export default function (Replicator, desc) {
       });
     });
   });
-};
+}
 
 // Helpers
 

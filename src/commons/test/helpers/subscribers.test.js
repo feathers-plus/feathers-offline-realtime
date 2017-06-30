@@ -49,7 +49,7 @@ export default function (Replicator, desc) {
           .then(() => {
             replicator = new Replicator(fromService, {
               sort: Replicator.sort('order'),
-              subscriber: (records, last) => { events[events.length] = last; },
+              subscriber: (records, last) => { events[events.length] = last; }
             });
           });
       });
@@ -143,7 +143,7 @@ export default function (Replicator, desc) {
             replicator = new Replicator(fromService, {
               sort: Replicator.sort('order'),
               publication: record => record.order <= 3.5,
-              subscriber: (records, last) => { events[events.length] = last; },
+              subscriber: (records, last) => { events[events.length] = last; }
             });
             
             data.splice(testLen);
@@ -181,7 +181,7 @@ export default function (Replicator, desc) {
             replicator = new Replicator(fromService, {
               sort: Replicator.sort('order'),
               publication: record => record.order <= 3.5,
-              subscriber: (records, last) => { events[events.length] = last; },
+              subscriber: (records, last) => { events[events.length] = last; }
             });
             
             data.splice(testLen);
@@ -217,7 +217,7 @@ export default function (Replicator, desc) {
             replicator = new Replicator(fromService, {
               sort: Replicator.sort('order'),
               publication: record => record.order <= 3.5,
-              subscriber: (records, last) => { events[events.length] = last; },
+              subscriber: (records, last) => { events[events.length] = last; }
             });
             
             data.splice(testLen);
@@ -261,7 +261,7 @@ export default function (Replicator, desc) {
       });
     });
   });
-};
+}
 
 // Helpers
 

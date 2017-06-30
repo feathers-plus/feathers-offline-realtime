@@ -107,7 +107,7 @@ export default function (Replicator, desc, useUuid) {
             replicator = new Replicator(fromService, {
               sort: Replicator.sort('order'),
               publication: record => record.order <= 3.5,
-              useUuid,
+              useUuid
             });
             
             data.splice(testLen);
@@ -173,7 +173,7 @@ export default function (Replicator, desc, useUuid) {
             replicator = new Replicator(fromService, {
               sort: Replicator.sort('order'),
               publication: record => record.order <= 3.5,
-              useUuid,
+              useUuid
             });
             
             data.splice(testLen);
@@ -234,7 +234,7 @@ export default function (Replicator, desc, useUuid) {
             replicator = new Replicator(fromService, {
               sort: Replicator.sort('order'),
               publication: record => record.order <= 3.5,
-              useUuid,
+              useUuid
             });
             
             data.splice(testLen);
@@ -266,7 +266,7 @@ export default function (Replicator, desc, useUuid) {
       });
     });
   });
-};
+}
 
 // Helpers
 

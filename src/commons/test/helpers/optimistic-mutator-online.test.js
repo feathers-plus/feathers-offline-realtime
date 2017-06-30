@@ -30,7 +30,7 @@ function fromServiceNonPaginatedConfig () {
           throw new errors.BadRequest('Fail requested');
         }
       }
-    },
+    }
   });
 }
 
@@ -113,7 +113,7 @@ export default function (Replicator, desc) {
             assert.deepEqual(result, data.slice(0, 3));
             assert.deepEqual(events, [
               { action: 'snapshot' },
-              { action: 'add-listeners' },
+              { action: 'add-listeners' }
             ]);
         
             assert.lengthOf(records, sampleLen);
@@ -131,7 +131,7 @@ export default function (Replicator, desc) {
             assert.deepEqual(result, { id: 0, uuid: 1000, order: 0 });
             assert.deepEqual(events, [
               { action: 'snapshot' },
-              { action: 'add-listeners' },
+              { action: 'add-listeners' }
             ]);
         
             assert.lengthOf(records, sampleLen);
@@ -154,7 +154,7 @@ export default function (Replicator, desc) {
               { action: 'snapshot' },
               { action: 'add-listeners' },
               { source: 1, eventName: 'created', action: 'mutated', record: { id: 99, uuid: 1099, order: 99 } },
-              { source: 0, eventName: 'created', action: 'mutated', record: { id: 99, uuid: 1099, order: 99 } },
+              { source: 0, eventName: 'created', action: 'mutated', record: { id: 99, uuid: 1099, order: 99 } }
             ]);
   
             assert.lengthOf(records, sampleLen + 1);
@@ -180,7 +180,7 @@ export default function (Replicator, desc) {
               { action: 'snapshot' },
               { action: 'add-listeners' },
               { source: 1, eventName: 'updated', action: 'mutated', record: { id: 0, uuid: 1000, order: 99 } },
-              { source: 0, eventName: 'updated', action: 'mutated', record: { id: 0, uuid: 1000, order: 99 } },
+              { source: 0, eventName: 'updated', action: 'mutated', record: { id: 0, uuid: 1000, order: 99 } }
             ]);
           });
       });
@@ -202,7 +202,7 @@ export default function (Replicator, desc) {
               { action: 'snapshot' },
               { action: 'add-listeners' },
               { source: 1, eventName: 'patched', action: 'mutated', record: { id: 1, uuid: 1001, order: 99 } },
-              { source: 0, eventName: 'patched', action: 'mutated', record: { id: 1, uuid: 1001, order: 99 } },
+              { source: 0, eventName: 'patched', action: 'mutated', record: { id: 1, uuid: 1001, order: 99 } }
             ]);
           });
       });
@@ -223,7 +223,7 @@ export default function (Replicator, desc) {
               { action: 'snapshot' },
               { action: 'add-listeners' },
               { source: 1, eventName: 'removed', action: 'remove', record: { id: 2, uuid: 1002, order: 2 } },
-              { source: 0, eventName: 'removed', action: 'remove', record: { id: 2, uuid: 1002, order: 2 } },
+              { source: 0, eventName: 'removed', action: 'remove', record: { id: 2, uuid: 1002, order: 2 } }
             ]);
           });
       });
@@ -253,7 +253,7 @@ export default function (Replicator, desc) {
         return replicator.connect()
           .then(() => clientService.create([
             { id: 98, uuid: 1098, order: 98 },
-            { id: 99, uuid: 1099, order: 99 },
+            { id: 99, uuid: 1099, order: 99 }
           ]))
           .then(delay())
           .then(result => {
@@ -264,7 +264,7 @@ export default function (Replicator, desc) {
         
             assert.deepEqual(result, [
               { id: 98, uuid: 1098, order: 98 },
-              { id: 99, uuid: 1099, order: 99 },
+              { id: 99, uuid: 1099, order: 99 }
             ]);
             assert.deepEqual(events, [
               { action: 'snapshot' },
@@ -272,7 +272,7 @@ export default function (Replicator, desc) {
               { source: 1, eventName: 'created', action: 'mutated', record: { id: 98, uuid: 1098, order: 98 } },
               { source: 1, eventName: 'created', action: 'mutated', record: { id: 99, uuid: 1099, order: 99 } },
               { source: 0, eventName: 'created', action: 'mutated', record: { id: 98, uuid: 1098, order: 98 } },
-              { source: 0, eventName: 'created', action: 'mutated', record: { id: 99, uuid: 1099, order: 99 } },
+              { source: 0, eventName: 'created', action: 'mutated', record: { id: 99, uuid: 1099, order: 99 } }
             ]);
         
             assert.lengthOf(records, sampleLen + 2);
@@ -309,7 +309,7 @@ export default function (Replicator, desc) {
               { source: 1, eventName: 'patched', action: 'mutated', record: { id: 3, uuid: 1003, order: 3, foo: 1 } },
               { source: 0, eventName: 'patched', action: 'mutated', record: { id: 1, uuid: 1001, order: 1, foo: 1 } },
               { source: 0, eventName: 'patched', action: 'mutated', record: { id: 2, uuid: 1002, order: 2, foo: 1 } },
-              { source: 0, eventName: 'patched', action: 'mutated', record: { id: 3, uuid: 1003, order: 3, foo: 1 } },
+              { source: 0, eventName: 'patched', action: 'mutated', record: { id: 3, uuid: 1003, order: 3, foo: 1 } }
             ]);
           });
       });
@@ -339,7 +339,7 @@ export default function (Replicator, desc) {
               { source: 1, eventName: 'removed', action: 'remove', record: { id: 3, uuid: 1003, order: 3 } },
               { source: 0, eventName: 'removed', action: 'remove', record: { id: 1, uuid: 1001, order: 1 } },
               { source: 0, eventName: 'removed', action: 'remove', record: { id: 2, uuid: 1002, order: 2 } },
-              { source: 0, eventName: 'removed', action: 'remove', record: { id: 3, uuid: 1003, order: 3 } },
+              { source: 0, eventName: 'removed', action: 'remove', record: { id: 3, uuid: 1003, order: 3 } }
             ]);
           });
       });
@@ -388,7 +388,7 @@ export default function (Replicator, desc) {
               { action: 'snapshot' },
               { action: 'add-listeners' },
               { source: 1, eventName: 'created', action: 'mutated', record: { id: 99, uuid: 1099, order: 99 } },
-              { source: 2, eventName: 'removed', action: 'remove', record: { id: 99, uuid: 1099, order: 99 } },
+              { source: 2, eventName: 'removed', action: 'remove', record: { id: 99, uuid: 1099, order: 99 } }
             ]);
           
             assert.lengthOf(records, sampleLen);
@@ -408,7 +408,7 @@ export default function (Replicator, desc) {
               { action: 'snapshot' },
               { action: 'add-listeners' },
               { source: 1, eventName: 'updated', action: 'mutated', record: { id: 0, uuid: 1000, order: 99 } },
-              { source: 2, eventName: 'updated', action: 'mutated', record: { id: 0, uuid: 1000, order: 0 } },
+              { source: 2, eventName: 'updated', action: 'mutated', record: { id: 0, uuid: 1000, order: 0 } }
             ]);
         
             assert.lengthOf(records, sampleLen);
@@ -428,7 +428,7 @@ export default function (Replicator, desc) {
               { action: 'snapshot' },
               { action: 'add-listeners' },
               { source: 1, eventName: 'patched', action: 'mutated', record: { id: 1, uuid: 1001, order: 99 } },
-              { source: 2, eventName: 'updated', action: 'mutated', record: { id: 1, uuid: 1001, order: 1 } },
+              { source: 2, eventName: 'updated', action: 'mutated', record: { id: 1, uuid: 1001, order: 1 } }
             ]);
         
             assert.lengthOf(records, sampleLen);
@@ -448,7 +448,7 @@ export default function (Replicator, desc) {
               { action: 'snapshot' },
               { action: 'add-listeners' },
               { source: 1, eventName: 'removed', action: 'remove', record: { id: 2, uuid: 1002, order: 2 } },
-              { source: 2, eventName: 'created', action: 'mutated', record: { id: 2, uuid: 1002, order: 2 } },
+              { source: 2, eventName: 'created', action: 'mutated', record: { id: 2, uuid: 1002, order: 2 } }
             ]);
         
             assert.lengthOf(records, sampleLen);
@@ -458,7 +458,7 @@ export default function (Replicator, desc) {
       });
     });
   });
-};
+}
 
 // Helpers
 

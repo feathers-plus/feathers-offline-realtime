@@ -210,4 +210,4 @@ export default function (Replicator, desc) {
       });
     });
   });
-};
+}
