@@ -184,9 +184,16 @@ to optimistically mutate the client replica while asynchronously mutating on the
 [pagination object](https://docs.feathersjs.com/api/databases/common.html#pagination)
 containing a default and max page size.
 
-> **ProTip:** The `id` value for these service calls must be the `uuid`.
+> **ProTip:** The `id` value for these service calls
+must be the value of the `uuid` property in the data.
 
+The `create` method adds a `uuid` property to the data if none is provided.
+By default this will be a short, but variable-length, random string.
+There is virtually
+[no chance of collision](https://github.com/dylang/shortid/issues/81#issuecomment-259812835)
+unless you work at high scale.
 
+You can change the default to use 32-char uuid values by running `replicator.useShortUuid(false);`.
 
 > **ProTip:** Two events are emitted for each optimistic mutation of the client replica.
 The first occurs when the client replica is mutated.
