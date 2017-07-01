@@ -1,5 +1,6 @@
 
 import snapshot from 'feathers-offline-snapshot';
+import { genUuid } from './utils';
 
 import makeDebug from 'debug';
 const debug = makeDebug('base-replicator');
@@ -9,9 +10,12 @@ export default class BaseReplicator {
     debug('constructor entered');
 
     // Higher order class defines: this.engine, this.store, this.changeSort, this.on
+
     this._service = service;
     this._query = options.query || {};
     this._publication = options.publication;
+
+    this.genShortUuid = true;
   }
 
   get connected () {
@@ -33,6 +37,14 @@ export default class BaseReplicator {
 
   disconnect () {
     this.engine.removeListeners();
+  }
+
+  useShortUuid (ifShortUuid) {
+    this.genShortUuid = !!ifShortUuid;
+  }
+
+  getUuid () {
+    return genUuid(this.genShortUuid);
   }
 
   // array.sort(Realtime.sort('fieldName'));

@@ -15,9 +15,9 @@ describe('utils-misc:', () => {
     assert.isNotOk(isObject(true));
   });
 
-   it('stripProps works', () => {
-   const from = { a: 1, id: 2, _id: 3, b: { c: 4, id: 5, _id: 6 }};
-   
-   assert.deepEqual(stripProps(from, ['id', '_id']), { a: 1, b: { c: 4 }});
-   });
+  it('stripProps works', () => {
+    const from = { a: 1, id: 2, _id: 3, b: { c: 4, id: 5, _id: 6 } };
+
+    assert.deepEqual(stripProps(from, ['id', '_id']), { a: 1, b: { c: 4 } });
+  });
 });

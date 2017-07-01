@@ -5,12 +5,8 @@ import shortid from 'shortid';
 import { stripProps } from './misc';
 
 // Integrity of short unique identifiers: https://github.com/dylang/shortid/issues/81#issuecomment-259812835
-let ifShortUuid = true;
 
-export function useShortUuids(bool) {
-  ifShortUuid = !!bool;
-}
-export function getUuid() {
+export function genUuid(ifShortUuid) {
   return ifShortUuid ?  shortid.generate() : uuidV4();
 }
 
