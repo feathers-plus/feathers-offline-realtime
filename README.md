@@ -184,6 +184,10 @@ to optimistically mutate the client replica while asynchronously mutating on the
 [pagination object](https://docs.feathersjs.com/api/databases/common.html#pagination)
 containing a default and max page size.
 
+> **ProTip:** The `id` value for these service calls must be the `uuid`.
+
+
+
 > **ProTip:** Two events are emitted for each optimistic mutation of the client replica.
 The first occurs when the client replica is mutated.
 It is identified by `source = 1` (see Event information below).
