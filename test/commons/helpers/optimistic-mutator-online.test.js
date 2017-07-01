@@ -162,6 +162,15 @@ export default function (Replicator, desc) {
           })
           .then(() => replicator.disconnect());
       });
+  
+      it('create adds missing uuid', () => {
+        return replicator.connect()
+          .then(() => clientService.create({ id: 99, order: 99 }))
+          .then(data => {
+            assert.isString(data.uuid);
+          })
+          .then(() => replicator.disconnect());
+      });
 
       it('update works', () => {
         return replicator.connect()

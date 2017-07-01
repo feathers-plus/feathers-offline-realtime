@@ -3,8 +3,8 @@
  Forked from feathers-memory/src/index.js
  */
 import Proto from 'uberproto';
-import filter from 'feathers-query-filters';
 import errors from 'feathers-errors';
+import filter from 'feathers-query-filters';
 import { sorter, matcher, select, _ } from 'feathers-commons';
 
 class Service {
@@ -18,6 +18,7 @@ class Service {
 
     this._mutateStore = this._engine._mutateStore.bind(this._engine);
     this._alwaysSelect = ['id', '_id', 'uuid'];
+    this._getUuid = this._replicator.getUuid;
 
     this.store = this._engine.store || { records: [] };
     this.paginate = options.paginate || {};
@@ -86,7 +87,10 @@ class Service {
   // Create without hooks and mixins that can be used internally
   _create (data, params) {
     this._checkConnected();
-    checkUuidExists(data);
+
+    if (!('uuid' in data)) {
+      data.uuid = this._getUuid();
+    }
 
     const records = this.store.records;
     const index = findUuidIndex(records, data.uuid);
