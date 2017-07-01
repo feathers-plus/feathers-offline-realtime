@@ -1,5 +1,5 @@
 
-import test from '../src/commons/test/helpers/optimistic-mutator-online.test.js';
+import test from './commons/helpers/optimistic-mutator-online.test.js';
 const Realtime = require('../src');
 
 test(Realtime, 'realtime');

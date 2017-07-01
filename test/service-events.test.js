@@ -1,5 +1,5 @@
 
-import test from '../src/commons/test/helpers/service-events.test.js';
+import test from './commons/helpers/service-events.test.js';
 const Realtime = require('../src');
 
 test(Realtime, 'realtime', false);

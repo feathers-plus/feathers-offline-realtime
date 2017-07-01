@@ -1,5 +1,5 @@
 
-import test from '../src/commons/test/helpers/subscribers.test.js';
+import test from './commons/helpers/subscribers.test.js';
 const Realtime = require('../src');
 
 test(Realtime, 'realtime');
