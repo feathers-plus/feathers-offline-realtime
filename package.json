@@ -56,7 +56,9 @@
     "feathers-errors": "2.8.1",
     "feathers-offline-snapshot": "^0.0.1",
     "feathers-query-filters": "2.1.2",
-    "uberproto": "1.2.0"
+    "shortid": "2.2.8",
+    "uberproto": "1.2.0",
+    "uuid": "3.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
