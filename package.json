@@ -1,7 +1,7 @@
 {
   "name": "feathers-offline-realtime",
   "description": "Offline-first realtime replication with optimistic updates.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/feathersjs/feathers-offline-realtime",
   "main": "lib/",
   "keywords": [
