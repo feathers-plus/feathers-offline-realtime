@@ -41,6 +41,10 @@ export default class BaseEngine {
 
     this.store.last = { action: 'snapshot' };
     this.store.records = records;
+  
+    if (this._sorter) {
+      records.sort(this._sorter);
+    }
 
     this.emit('events', this.store.records, this.store.last);
     this._subscriber(this.store.records, this.store.last);
@@ -81,7 +85,6 @@ export default class BaseEngine {
 
   _mutateStore (eventName, remoteRecord, source) {
     debug(`_mutateStore started: ${eventName}`);
-    // ******************** console.log(`_mutateStore started: ${eventName} ${source}`, remoteRecord);
     const that = this;
 
     const idName = this._useUuid ? 'uuid' : ('id' in remoteRecord ? 'id' : '_id');
