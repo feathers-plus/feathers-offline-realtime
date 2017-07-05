@@ -1,5 +1,12 @@
 # Change Log
 
+## [v0.1.1](https://github.com/feathersjs/feathers-offline-realtime/tree/v0.1.1) (2017-07-05)
+[Full Changelog](https://github.com/feathersjs/feathers-offline-realtime/compare/v0.1.0...v0.1.1)
+
+**Implemented enhancements:**
+
+- Use npm 'component-emitter' instead of 'events' [\#7](https://github.com/feathersjs/feathers-offline-realtime/issues/7)
+
 ## [v0.1.0](https://github.com/feathersjs/feathers-offline-realtime/tree/v0.1.0) (2017-06-30)
 [Full Changelog](https://github.com/feathersjs/feathers-offline-realtime/compare/v0.0.3...v0.1.0)
 
