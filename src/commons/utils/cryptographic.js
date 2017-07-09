@@ -1,5 +1,5 @@
 
-import crypto from 'crypto';
+import md5 from 'md5';
 import uuidV4 from 'uuid/v4';
 import shortid from 'shortid';
 import { stripProps } from './misc';
@@ -12,7 +12,7 @@ export function genUuid(ifShortUuid) {
 
 export function hash(value) {
   value = typeof value === 'string' ? value : JSON.stringify(value);
-  return crypto.createHash('sha1').update(value).digest('hex');
+  return md5(value);
 }
 
 export function hashOfRecord(record) {
