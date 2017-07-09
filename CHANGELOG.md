@@ -1,5 +1,17 @@
 # Change Log
 
+## [v0.1.2](https://github.com/feathersjs/feathers-offline-realtime/tree/v0.1.2) (2017-07-09)
+[Full Changelog](https://github.com/feathersjs/feathers-offline-realtime/compare/v0.1.1...v0.1.2)
+
+**Fixed bugs:**
+
+- crypto dependency breaks react native [\#9](https://github.com/feathersjs/feathers-offline-realtime/issues/9)
+
+**Merged pull requests:**
+
+- Replace crypto repo with md5 repo [\#11](https://github.com/feathersjs/feathers-offline-realtime/pull/11) ([eddyystop](https://github.com/eddyystop))
+- Remove asset no longer used in README [\#10](https://github.com/feathersjs/feathers-offline-realtime/pull/10) ([eddyystop](https://github.com/eddyystop))
+
 ## [v0.1.1](https://github.com/feathersjs/feathers-offline-realtime/tree/v0.1.1) (2017-07-05)
 [Full Changelog](https://github.com/feathersjs/feathers-offline-realtime/compare/v0.1.0...v0.1.1)
 
