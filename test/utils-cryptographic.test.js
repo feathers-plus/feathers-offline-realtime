@@ -8,10 +8,13 @@ describe('utils-cryptographic:', () => {
     const hash1 = hash(str);
     const hash2 = hash(str);
 
+    console.log(hash1);
+    console.log(hash2);
+
     assert.isString(hash1);
-    assert.lengthOf(hash1, 40);
+    assert.lengthOf(hash1, 32);
     assert.isString(hash2);
-    assert.lengthOf(hash2, 40);
+    assert.lengthOf(hash2, 32);
 
     assert.equal(hash1, hash2);
   });

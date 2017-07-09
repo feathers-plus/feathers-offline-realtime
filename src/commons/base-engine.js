@@ -41,7 +41,7 @@ export default class BaseEngine {
 
     this.store.last = { action: 'snapshot' };
     this.store.records = records;
-  
+
     if (this._sorter) {
       records.sort(this._sorter);
     }
