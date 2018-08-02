@@ -1,11 +1,10 @@
-
 /*
  Forked from feathers-memory/src/index.js
  */
 import Proto from 'uberproto';
-import errors from 'feathers-errors';
-import filter from 'feathers-query-filters';
-import { sorter, matcher, select, _ } from 'feathers-commons';
+import errors from '@feathersjs/errors';
+import { sorter, select, _, filterQuery } from '@feathersjs/commons';
+import sift from 'sift';
 
 class Service {
   constructor (options = {}) {
@@ -30,9 +29,9 @@ class Service {
 
   // Find without hooks and mixins that can be used internally and always returns
   // a pagination object
-  _find (params, getFilter = filter) {
+  _find (params, getFilter = filterQuery) {
     const { query, filters } = getFilter(params.query || {});
-    let values = _.values(this.store.records).filter(matcher(query));
+    let values = _.values(this.store.records).filter(sift(query));
 
     const total = values.length;
 
@@ -63,7 +62,7 @@ class Service {
   find (params) {
     const paginate = typeof params.paginate !== 'undefined' ? params.paginate : this.paginate;
     // Call the internal find with query parameter that include pagination
-    const result = this._find(params, query => filter(query, paginate));
+    const result = this._find(params, query => filterQuery(query, paginate));
 
     if (!(paginate && paginate.default)) {
       return result.then(page => page.data);

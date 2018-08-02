@@ -1,9 +1,8 @@
 
 const assert = require('chai').assert;
-const feathers = require('feathers');
+const feathers = require('@feathersjs/feathers');
 const memory = require('feathers-memory');
-const hooks = require('feathers-hooks');
-const errors = require('feathers-errors');
+const errors = require('@feathersjs/errors');
 
 const optimisticMutator = require('../../../src/optimistic-mutator');
 
@@ -42,7 +41,6 @@ export default function (Replicator, desc) {
 
     beforeEach(() => {
       const app = feathers()
-        .configure(hooks())
         .configure(services1);
 
       fromService = app.service('from');

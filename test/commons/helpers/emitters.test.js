@@ -1,8 +1,7 @@
 
 const assert = require('chai').assert;
-const feathers = require('feathers');
+const feathers = require('@feathersjs/feathers');
 const memory = require('feathers-memory');
-const hooks = require('feathers-hooks');
 
 const sampleLen = 5;
 
@@ -28,7 +27,6 @@ export default function (Replicator, desc) {
 
     beforeEach(() => {
       app = feathers()
-        .configure(hooks())
         .configure(services1);
 
       fromService = app.service('from');
